@@ -18,22 +18,24 @@
     @endphp
 
     <x-section-wrapper bgVariant="mist">
-        <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
-            <div>
-                <span class="inline-block px-3 py-1 rounded-md bg-desa-soft text-desa-dark border border-desa-border text-xs font-bold mb-2">
-                    Formulir Layanan Persuratan Mandiri &bull; Desa Pabelan
-                </span>
-                <h1 class="text-2xl sm:text-3xl font-extrabold text-desa-dark tracking-tight">
-                    Ajukan Surat Pengantar Resmi Desa
-                </h1>
-                <p class="text-sm text-desa-muted mt-1">
-                    Pilih jenis surat yang dibutuhkan, lengkapi data tambahan khusus, dan unggah berkas persyaratan untuk diverifikasi perangkat desa.
-                </p>
-            </div>
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-desa-dark tracking-tight">
+                Ajukan Surat Pengantar Resmi Desa
+            </h1>
             <x-button variant="secondary" href="{{ route('warga.surat.index') }}">
                 Lihat Riwayat Surat Saya
             </x-button>
         </div>
+
+        @if (session('error'))
+            <div class="mb-6 rounded-2xl border-2 border-red-700 bg-red-50 p-5 text-red-950 flex items-start gap-3" role="alert">
+                <svg class="w-5 h-5 text-red-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <div>
+                    <h2 class="text-sm font-extrabold mb-1">Terjadi Kendala Pengunggahan Berkas:</h2>
+                    <p class="text-xs font-medium">{{ session('error') }}</p>
+                </div>
+            </div>
+        @endif
 
         @if ($errors->any())
             <div class="mb-6 rounded-2xl border-2 border-red-700 bg-red-50 p-5 text-red-950" role="alert">
@@ -55,17 +57,11 @@
         >
             @csrf
 
-            <!-- BAGIAN 1: BIODATA DASAR PEMOHON (OTOMATIS & READONLY) -->
             <div class="bg-white rounded-2xl border-2 border-desa-border p-6 sm:p-8 shadow-xs">
                 <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b-2 border-desa-soft">
-                    <div>
-                        <h2 class="text-lg font-extrabold text-desa-dark">
-                            1. Biodata Dasar Pemohon (Terisi Otomatis)
-                        </h2>
-                        <p class="text-xs text-desa-muted">
-                            Data di bawah ini diambil langsung dari Master Penduduk &amp; Kartu Keluarga Desa Pabelan (bersifat <code>readonly</code>).
-                        </p>
-                    </div>
+                    <h2 class="text-lg font-extrabold text-desa-dark">
+                        1. Biodata Dasar Pemohon
+                    </h2>
                     <span class="px-3 py-1 rounded-full bg-desa-soft text-desa-dark border border-desa-border text-xs font-bold">
                         Status Warga: {{ $warga->status_warga ?? 'Aktif' }}
                     </span>
@@ -73,7 +69,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-desa-muted mb-1">Nomor Induk Kependudukan (NIK)</label>
+                        <label class="block text-xs font-bold text-desa-muted mb-1">Nomor Induk Kependudukan</label>
                         <input
                             type="text"
                             readonly
@@ -83,7 +79,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold text-desa-muted mb-1">Nomor Kartu Keluarga (No. KK)</label>
+                        <label class="block text-xs font-bold text-desa-muted mb-1">Nomor Kartu Keluarga</label>
                         <input
                             type="text"
                             readonly
@@ -93,7 +89,7 @@
                     </div>
 
                     <div class="sm:col-span-2">
-                        <label class="block text-xs font-bold text-desa-muted mb-1">Nama Lengkap Sesuai KTP-el</label>
+                        <label class="block text-xs font-bold text-desa-muted mb-1">Nama Lengkap</label>
                         <input
                             type="text"
                             readonly
@@ -143,7 +139,7 @@
                     </div>
 
                     <div class="sm:col-span-2 lg:col-span-4">
-                        <label class="block text-xs font-bold text-desa-muted mb-1">Alamat Lengkap Sesuai KK</label>
+                        <label class="block text-xs font-bold text-desa-muted mb-1">Alamat Lengkap</label>
                         <input
                             type="text"
                             readonly
@@ -154,15 +150,11 @@
                 </div>
             </div>
 
-            <!-- BAGIAN 2: PEMILIHAN KATEGORI & JENIS SURAT + KEPERLUAN -->
             <div class="bg-white rounded-2xl border-2 border-desa-border p-6 sm:p-8 shadow-xs space-y-5">
                 <div class="pb-4 border-b-2 border-desa-soft">
                     <h2 class="text-lg font-extrabold text-desa-dark">
                         2. Pilih Kategori &amp; Jenis Surat Layanan Desa
                     </h2>
-                    <p class="text-xs text-desa-muted">
-                        Tersedia 14 jenis surat layanan Desa Pabelan. Saat Anda memilih jenis surat, formulir isian khusus dan berkas syarat akan menyesuaikan secara otomatis.
-                    </p>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -201,13 +193,12 @@
                                 name="keperluan"
                                 rows="3"
                                 required
-                                placeholder="Tuliskan secara jelas keperluan surat ini (contoh: Persyaratan pengajuan beasiswa KIP Kuliah di Universitas Sebelas Maret)"
+                                placeholder="Tuliskan secara jelas keperluan surat ini"
                                 class="w-full p-3.5 rounded-xl bg-white border-2 border-desa-border text-sm text-desa-dark placeholder:text-desa-muted/60"
                             >{{ old('keperluan') }}</textarea>
                         </div>
                     </div>
 
-                    <!-- Panel Informasi Jenis Surat Terpilih -->
                     <div class="lg:col-span-5 bg-desa-soft rounded-xl border-2 border-desa-border p-5 space-y-2.5">
                         <div class="flex items-center justify-between gap-2">
                             <span id="info-kode-surat" class="px-2.5 py-1 rounded bg-desa-dark text-white text-xs font-mono font-bold">
@@ -221,43 +212,33 @@
                             Memuat informasi surat...
                         </h3>
                         <p id="info-kategori-surat" class="text-xs font-bold text-desa-action"></p>
-                        <p id="info-kegunaan-surat" class="text-xs text-desa-dark leading-relaxed pt-1 border-t border-blue-200"></p>
+                        <p id="info-kegunaan-surat" class="text-xs text-desa-dark leading-relaxed pt-1 border-t border-blue-200 hidden"></p>
                     </div>
                 </div>
             </div>
 
-            <!-- BAGIAN 3: INPUT TAMBAHAN KHUSUS SESUAI JENIS SURAT (DINAMIS) -->
             <div class="bg-white rounded-2xl border-2 border-desa-border p-6 sm:p-8 shadow-xs">
                 <div class="pb-4 mb-5 border-b-2 border-desa-soft">
                     <h2 class="text-lg font-extrabold text-desa-dark">
                         3. Data Isian Khusus Sesuai Jenis Surat
                     </h2>
-                    <p class="text-xs text-desa-muted">
-                        Kolom di bawah ini berubah otomatis mengikuti jenis surat yang Anda pilih pada langkah ke-2.
-                    </p>
                 </div>
 
                 <div id="dynamic-inputs-container" class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <!-- Di-render secara dinamis oleh script di bawah -->
                 </div>
             </div>
 
-            <!-- BAGIAN 4: UPLOAD BERKAS PERSYARATAN (SYARAT DASAR UMUM + SYARAT TAMBAHAN KHUSUS) -->
             <div class="bg-white rounded-2xl border-2 border-desa-border p-6 sm:p-8 shadow-xs space-y-6">
                 <div class="pb-4 border-b-2 border-desa-soft">
                     <h2 class="text-lg font-extrabold text-desa-dark">
-                        4. Unggah Berkas Persyaratan (Format JPG, PNG, atau PDF &bull; Maks. 4 MB)
+                        4. Unggah Berkas Persyaratan
                     </h2>
-                    <p class="text-xs text-desa-muted">
-                        Lampirkan dokumen persyaratan dasar umum beserta dokumen khusus sesuai jenis surat yang diajukan.
-                    </p>
                 </div>
 
-                <!-- 4A. Syarat Dasar Umum -->
                 <div>
                     <h3 class="text-sm font-extrabold text-desa-dark mb-3 flex items-center gap-2">
                         <span class="px-2.5 py-0.5 rounded bg-desa-dark text-white text-xs">A</span>
-                        <span>Syarat Dasar Umum (Berlaku untuk Semua Jenis Surat)</span>
+                        <span>Syarat Dasar Umum</span>
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         @foreach ($syaratDasarUmum as $syaratUmum)
@@ -288,37 +269,29 @@
                     </div>
                 </div>
 
-                <!-- 4B. Persyaratan Tambahan Khusus Sesuai Jenis Surat -->
                 <div class="pt-4 border-t border-blue-200">
                     <h3 class="text-sm font-extrabold text-desa-dark mb-3 flex items-center gap-2">
                         <span class="px-2.5 py-0.5 rounded bg-desa-action text-white text-xs">B</span>
-                        <span>Persyaratan Tambahan Khusus (<span id="label-syarat-jenis">Sesuai Jenis Surat</span>)</span>
+                        <span>Persyaratan Tambahan Khusus</span>
                     </h3>
                     <div id="dynamic-syarat-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Di-render secara dinamis oleh script di bawah -->
                     </div>
                 </div>
             </div>
 
-            <!-- Tombol Submit -->
-            <div class="bg-desa-soft rounded-2xl border-2 border-desa-border p-5 flex flex-wrap items-center justify-between gap-4">
-                <p class="text-xs font-semibold text-desa-dark max-w-xl">
-                    Dengan mengirim permohonan ini, saya menyatakan bahwa seluruh data isian dan dokumen lampiran yang diunggah adalah benar dan dapat dipertanggungjawabkan.
-                </p>
-                <div class="flex items-center gap-3">
-                    <a
-                        href="{{ route('warga.surat.index') }}"
-                        class="min-h-[44px] inline-flex items-center px-4 py-2.5 rounded-lg bg-white text-desa-dark border-2 border-desa-border text-sm font-bold hover:bg-desa-bright transition-colors"
-                    >
-                        Batal
-                    </a>
-                    <button
-                        type="submit"
-                        class="min-h-[44px] inline-flex items-center px-6 py-2.5 rounded-lg bg-desa-action text-white text-sm font-extrabold hover:bg-desa-dark transition-colors cursor-pointer"
-                    >
-                        Kirim Permohonan Surat
-                    </button>
-                </div>
+            <div class="bg-desa-soft rounded-2xl border-2 border-desa-border p-5 flex flex-wrap items-center justify-end gap-3">
+                <a
+                    href="{{ route('warga.surat.index') }}"
+                    class="min-h-[44px] inline-flex items-center px-4 py-2.5 rounded-lg bg-white text-desa-dark border-2 border-desa-border text-sm font-bold hover:bg-desa-bright transition-colors"
+                >
+                    Batal
+                </a>
+                <button
+                    type="submit"
+                    class="min-h-[44px] inline-flex items-center px-6 py-2.5 rounded-lg bg-desa-action text-white text-sm font-extrabold hover:bg-desa-dark transition-colors cursor-pointer"
+                >
+                    Kirim Permohonan Surat
+                </button>
             </div>
         </form>
     </x-section-wrapper>
@@ -355,10 +328,13 @@
                 infoFormat.textContent = item.format_nomor || '';
                 infoNama.textContent = item.nama_surat;
                 infoKategori.textContent = item.kategori;
-                infoKegunaan.textContent = 'Kegunaan: ' + (item.deskripsi_kegunaan || '-');
-                labelSyaratJenis.textContent = item.nama_surat;
+                if (infoKegunaan) {
+                    infoKegunaan.textContent = '';
+                }
+                if (labelSyaratJenis) {
+                    labelSyaratJenis.textContent = item.nama_surat;
+                }
 
-                // 1. Render Input Tambahan Khusus
                 const fields = Array.isArray(item.form_input_tambahan) ? item.form_input_tambahan : [];
                 if (fields.length === 0) {
                     inputsContainer.innerHTML = '<div class="md:col-span-2 p-4 rounded-xl bg-desa-mist border border-desa-border text-xs font-semibold text-desa-muted">Tidak ada input tambahan khusus untuk jenis surat ini.</div>';
@@ -399,10 +375,9 @@
                     }).join('');
                 }
 
-                // 2. Render Syarat Berkas Tambahan Khusus
                 const syarats = Array.isArray(item.syarat_tambahan) ? item.syarat_tambahan : [];
                 if (syarats.length === 0) {
-                    syaratContainer.innerHTML = '<div class="md:col-span-2 p-4 rounded-xl bg-desa-mist border border-desa-border text-xs font-semibold text-desa-muted">Cukup melampirkan Syarat Dasar Umum (KTP-el, KK, dan Pengantar RT/RW).</div>';
+                    syaratContainer.innerHTML = '<div class="md:col-span-2 p-4 rounded-xl bg-desa-mist border border-desa-border text-xs font-semibold text-desa-muted">Tidak ada syarat tambahan khusus.</div>';
                 } else {
                     syaratContainer.innerHTML = syarats.map(function (syarat) {
                         const sName = escapeHtml(syarat.name);
@@ -446,58 +421,11 @@
                 renderFormForJenis(selectJenis.value);
             }
 
-            // Kompresi otomatis gambar besar di sisi browser & validasi batas ukuran POST agar tidak terkena PostTooLargeException (8 MB)
             const formSurat = document.getElementById('form-ajukan-surat');
-
-            function compressImageFile(file, maxDim = 1600, quality = 0.8) {
-                return new Promise(function (resolve) {
-                    if (!file || !file.type.startsWith('image/') || file.size <= 500 * 1024) {
-                        resolve(file);
-                        return;
-                    }
-                    const reader = new FileReader();
-                    reader.onload = function (ev) {
-                        const img = new Image();
-                        img.onload = function () {
-                            let w = img.width;
-                            let h = img.height;
-                            if (w > maxDim || h > maxDim) {
-                                if (w > h) {
-                                    h = Math.round((h * maxDim) / w);
-                                    w = maxDim;
-                                } else {
-                                    w = Math.round((w * maxDim) / h);
-                                    h = maxDim;
-                                }
-                            }
-                            const canvas = document.createElement('canvas');
-                            canvas.width = w;
-                            canvas.height = h;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, w, h);
-                            canvas.toBlob(function (blob) {
-                                if (!blob || blob.size >= file.size) {
-                                    resolve(file);
-                                    return;
-                                }
-                                const baseName = file.name.replace(/\.[^.]+$/, '');
-                                const compressed = new File([blob], baseName + '.jpg', {
-                                    type: 'image/jpeg',
-                                    lastModified: Date.now()
-                                });
-                                resolve(compressed);
-                            }, 'image/jpeg', quality);
-                        };
-                        img.onerror = function () { resolve(file); };
-                        img.src = ev.target.result;
-                    };
-                    reader.onerror = function () { resolve(file); };
-                    reader.readAsDataURL(file);
-                });
-            }
+            let isSubmitting = false;
 
             if (formSurat) {
-                formSurat.addEventListener('change', async function (e) {
+                formSurat.addEventListener('change', function (e) {
                     const input = e.target;
                     if (!input || input.type !== 'file' || !input.files || !input.files[0]) return;
                     const file = input.files[0];
@@ -510,32 +438,26 @@
                         input.parentElement.appendChild(infoEl);
                     }
 
-                    if (file.type === 'application/pdf' && file.size > 2.5 * 1024 * 1024) {
+                    if (file.size > 10 * 1024 * 1024) {
                         infoEl.className = 'text-[11px] font-bold text-red-700 mt-1.5';
-                        infoEl.textContent = 'Ukuran PDF terlalu besar (' + (file.size / (1024 * 1024)).toFixed(1) + ' MB). Maksimal 2,5 MB per file PDF.';
+                        infoEl.textContent = 'Ukuran berkas terlalu besar (' + (file.size / (1024 * 1024)).toFixed(1) + ' MB). Maksimal 10 MB per berkas.';
                         input.value = '';
                         return;
                     }
 
-                    if (file.type.startsWith('image/') && file.size > 500 * 1024) {
-                        infoEl.className = 'text-[11px] font-semibold text-desa-action mt-1.5';
-                        infoEl.textContent = 'Mengoptimalkan ukuran foto untuk pengiriman cepat...';
-                        const compressed = await compressImageFile(file);
-                        if (compressed && compressed !== file && typeof DataTransfer !== 'undefined') {
-                            const dt = new DataTransfer();
-                            dt.items.add(compressed);
-                            input.files = dt.files;
-                            infoEl.className = 'text-[11px] font-bold text-emerald-900 mt-1.5';
-                            infoEl.textContent = 'Siap diunggah: ' + compressed.name + ' (' + Math.round(compressed.size / 1024) + ' KB)';
-                            return;
-                        }
-                    }
-
-                    infoEl.className = 'text-[11px] font-semibold text-desa-muted mt-1.5';
-                    infoEl.textContent = 'Siap diunggah: ' + file.name + ' (' + Math.round(file.size / 1024) + ' KB)';
+                    const displaySize = file.size >= 1024 * 1024
+                        ? (file.size / (1024 * 1024)).toFixed(1) + ' MB'
+                        : Math.round(file.size / 1024) + ' KB';
+                    infoEl.className = 'text-[11px] font-semibold text-desa-dark mt-1.5';
+                    infoEl.innerHTML = '<span class="text-emerald-800 font-bold">&check; Siap diunggah:</span> ' + escapeHtml(file.name) + ' (' + displaySize + ')';
                 });
 
                 formSurat.addEventListener('submit', function (e) {
+                    if (isSubmitting) {
+                        e.preventDefault();
+                        return false;
+                    }
+
                     const fileInputs = formSurat.querySelectorAll('input[type="file"]');
                     let totalBytes = 0;
                     fileInputs.forEach(function (inp) {
@@ -543,9 +465,19 @@
                             totalBytes += inp.files[0].size;
                         }
                     });
-                    if (totalBytes > 7 * 1024 * 1024) {
+
+                    if (totalBytes > 30 * 1024 * 1024) {
                         e.preventDefault();
-                        alert('Total ukuran seluruh berkas lampiran (' + (totalBytes / (1024 * 1024)).toFixed(1) + ' MB) melebihi batas pengiriman server (7 MB). Mohon gunakan file PDF/foto dengan ukuran lebih kecil.');
+                        alert('Total ukuran seluruh berkas lampiran (' + (totalBytes / (1024 * 1024)).toFixed(1) + ' MB) melebihi batas pengiriman server (30 MB). Mohon gunakan berkas dengan ukuran lebih kecil.');
+                        return false;
+                    }
+
+                    isSubmitting = true;
+                    const submitBtn = formSurat.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.style.pointerEvents = 'none';
+                        submitBtn.classList.add('opacity-75', 'cursor-wait');
+                        submitBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Sedang Mengirim Permohonan...';
                     }
                 });
             }

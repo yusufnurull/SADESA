@@ -23,55 +23,19 @@ class PengaduanAdminController extends Controller
 
     public function index(Request $request)
     {
-        $this->pastikanAdmin($request);
-
-        $filter = $request->validate([
-            'kategori' => ['nullable', 'string', Rule::in(self::KATEGORI)],
-            'status' => ['nullable', 'string', Rule::in(self::STATUS)],
-        ], [
-            'kategori.in' => 'Kategori pengaduan tidak valid.',
-            'status.in' => 'Status pengaduan tidak valid.',
-        ]);
-
-        $pengaduans = Pengaduan::query()
-            ->with('warga')
-            ->when($filter['kategori'] ?? null, fn ($query, $kategori) => $query->where('kategori', $kategori))
-            ->when($filter['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
-            ->latest()
-            ->paginate(15)
-            ->withQueryString();
-
+        $pengaduans = Pengaduan::with('warga')->latest()->paginate(15);
         return view('admin.pengaduan.index', compact('pengaduans'));
     }
 
     public function show(Request $request, $id)
     {
-        $this->pastikanAdmin($request);
-
-        $pengaduan = Pengaduan::with(['warga', 'ditanggapiOleh'])->findOrFail($id);
-
+        $pengaduan = Pengaduan::with(['warga', 'penanggap'])->findOrFail($id);
         return view('admin.pengaduan.tanggapi', compact('pengaduan'));
     }
 
-    public function tanggapi(Request $request, $id): RedirectResponse
+    public function tanggapi(Request $request, $id)
     {
-        $this->pastikanAdmin($request);
-
-        $data = $request->validate([
-            'tanggapan' => ['required', 'string', 'max:10000'],
-        ], [
-            'tanggapan.required' => 'Tanggapan wajib diisi.',
-            'tanggapan.max' => 'Tanggapan maksimal 10.000 karakter.',
-        ]);
-
-        $pengaduan = Pengaduan::findOrFail($id);
-        $pengaduan->update([
-            'tanggapan' => $data['tanggapan'],
-            'ditanggapi_oleh' => $request->user()->id,
-            'tanggal_tanggapan' => now(),
-        ]);
-
-        return back()->with('sukses', 'Tanggapan pengaduan berhasil disimpan.');
+        // Berikan respon/tanggapan tertulis dari admin dan ubah status aduan
     }
 
     public function updateStatus(Request $request, $id): RedirectResponse

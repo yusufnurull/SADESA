@@ -6,21 +6,20 @@
             </div>
         @endif
 
-        <!-- Filter Status Real-Time (Seragam dengan Komponen Filter di Portal Warga) -->
         <div class="flex flex-wrap items-center gap-2" role="navigation" aria-label="Filter Status Antrean Surat">
             <a
                 href="{{ route('admin.surat.index', array_filter(['q' => $pencarian, 'jenis_surat_id' => $jenisFilter])) }}"
                 class="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold border-2 transition-colors {{ empty($statusFilter) ? 'bg-desa-dark text-white border-desa-dark' : 'bg-white text-desa-dark border-desa-border hover:bg-desa-soft' }}"
             >
-                <span>Semua Permohonan</span>
-                <span class="px-2 py-0.5 rounded bg-desa-soft text-desa-dark font-mono">{{ $statistik['total'] ?? 0 }}</span>
+                <span>Antrean Belum di-ACC</span>
+                <span class="px-2 py-0.5 rounded bg-desa-soft text-desa-dark font-mono">{{ $statistik['antrean'] ?? (($statistik['pending'] ?? 0) + ($statistik['diproses'] ?? 0)) }}</span>
             </a>
 
             <a
                 href="{{ route('admin.surat.index', array_filter(['status' => 'pending', 'q' => $pencarian, 'jenis_surat_id' => $jenisFilter])) }}"
                 class="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold border-2 transition-colors {{ $statusFilter === 'pending' ? 'bg-amber-600 text-white border-amber-700' : 'bg-white text-desa-dark border-desa-border hover:bg-desa-soft' }}"
             >
-                <span>Menunggu Verifikasi</span>
+                <span>Tahap 1: Verifikasi Berkas</span>
                 <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-950 font-mono">{{ $statistik['pending'] ?? 0 }}</span>
             </a>
 
@@ -28,7 +27,7 @@
                 href="{{ route('admin.surat.index', array_filter(['status' => 'diproses', 'q' => $pencarian, 'jenis_surat_id' => $jenisFilter])) }}"
                 class="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold border-2 transition-colors {{ $statusFilter === 'diproses' ? 'bg-desa-action text-white border-desa-dark' : 'bg-white text-desa-dark border-desa-border hover:bg-desa-soft' }}"
             >
-                <span>Sedang Diproses</span>
+                <span>Tahap 2: Pengesahan Kades</span>
                 <span class="px-2 py-0.5 rounded bg-desa-soft text-desa-dark font-mono">{{ $statistik['diproses'] ?? 0 }}</span>
             </a>
 
@@ -36,7 +35,7 @@
                 href="{{ route('admin.surat.index', array_filter(['status' => 'disetujui', 'q' => $pencarian, 'jenis_surat_id' => $jenisFilter])) }}"
                 class="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold border-2 transition-colors {{ $statusFilter === 'disetujui' ? 'bg-emerald-700 text-white border-emerald-800' : 'bg-white text-desa-dark border-desa-border hover:bg-desa-soft' }}"
             >
-                <span>Disetujui / Selesai</span>
+                <span>Diterima / Disetujui</span>
                 <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-950 font-mono">{{ $statistik['disetujui'] ?? 0 }}</span>
             </a>
 
@@ -49,7 +48,6 @@
             </a>
         </div>
 
-        <!-- Bar Pencarian & Filter Jenis Surat -->
         <div class="bg-white rounded-2xl border-2 border-desa-border p-5 shadow-xs">
             <form action="{{ route('admin.surat.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                 <div class="md:col-span-5">
@@ -68,7 +66,7 @@
 
                 <div class="md:col-span-5">
                     <label for="filter-jenis" class="block text-xs font-bold text-desa-dark mb-1">
-                        Filter Jenis Surat (14 Layanan Desa Pabelan)
+                        Filter Jenis Surat
                     </label>
                     <select
                         id="filter-jenis"
@@ -105,7 +103,6 @@
             </form>
         </div>
 
-        <!-- Tabel Antrean & Riwayat Pengajuan Surat (Seragam dengan Tabel Portal Warga) -->
         @if ($surats->count() > 0)
             <div class="bg-white rounded-2xl border-2 border-desa-border overflow-hidden shadow-xs">
                 <div class="overflow-x-auto">
@@ -113,7 +110,7 @@
                         <thead>
                             <tr class="bg-desa-soft border-b-2 border-desa-border text-xs font-extrabold text-desa-dark">
                                 <th class="py-3.5 px-4">Tanggal Ajuan</th>
-                                <th class="py-3.5 px-4">Pemohon (NIK &amp; Nama)</th>
+                                <th class="py-3.5 px-4">Pemohon</th>
                                 <th class="py-3.5 px-4">Jenis &amp; Nomor Surat</th>
                                 <th class="py-3.5 px-4">Keperluan Pemohon</th>
                                 <th class="py-3.5 px-4">Status Real-Time</th>
@@ -125,19 +122,19 @@
                                 @php
                                     $badge = match ($surat->status) {
                                         'disetujui', 'selesai' => [
-                                            'label' => 'Disetujui / Selesai',
+                                            'label' => 'Disetujui & Diterbitkan',
                                             'class' => 'bg-emerald-100 text-emerald-950 border-emerald-700',
                                         ],
                                         'diproses' => [
-                                            'label' => 'Sedang Diproses',
-                                            'class' => 'bg-desa-soft text-desa-dark border-desa-border',
+                                            'label' => 'Menunggu ACC Kades',
+                                            'class' => 'bg-indigo-100 text-indigo-950 border-indigo-600',
                                         ],
                                         'ditolak' => [
                                             'label' => 'Ditolak',
                                             'class' => 'bg-red-100 text-red-950 border-red-700',
                                         ],
                                         default => [
-                                            'label' => 'Menunggu Verifikasi',
+                                            'label' => 'Verifikasi Berkas',
                                             'class' => 'bg-amber-100 text-amber-950 border-amber-600',
                                         ],
                                     };
@@ -199,17 +196,23 @@
                                         <div class="inline-flex flex-wrap justify-end gap-2">
                                             <a
                                                 href="{{ route('admin.surat.proses', $surat->id) }}"
-                                                class="min-h-[40px] inline-flex items-center px-3.5 py-1.5 rounded-lg bg-desa-soft text-desa-dark border border-desa-border text-xs font-bold hover:bg-desa-bright transition-colors"
+                                                class="min-h-[44px] inline-flex items-center px-3.5 py-1.5 rounded-lg text-xs font-bold transition-colors {{ auth()->user()->role === 'kades' && $surat->status === 'diproses' ? 'bg-desa-action text-white hover:bg-desa-dark' : 'bg-desa-soft text-desa-dark border border-desa-border hover:bg-desa-bright' }}"
                                             >
-                                                Verifikasi &amp; Keputusan
+                                                @if (auth()->user()->role === 'kades' && $surat->status === 'diproses')
+                                                    Pengesahan Kades
+                                                @elseif ($surat->status === 'pending')
+                                                    Verifikasi Berkas
+                                                @else
+                                                    Detail &amp; Proses
+                                                @endif
                                             </a>
                                             @if (in_array($surat->status, ['disetujui', 'selesai']))
                                                 <a
                                                     href="{{ route('admin.surat.cetak', $surat->id) }}"
                                                     target="_blank"
-                                                    class="min-h-[40px] inline-flex items-center px-3.5 py-1.5 rounded-lg bg-desa-action text-white text-xs font-bold hover:bg-desa-dark transition-colors"
+                                                    class="min-h-[44px] inline-flex items-center px-3.5 py-1.5 rounded-lg bg-desa-action text-white text-xs font-bold hover:bg-desa-dark transition-colors"
                                                 >
-                                                    Cetak Surat (A4)
+                                                    Cetak Surat
                                                 </a>
                                             @endif
                                         </div>
@@ -229,9 +232,9 @@
         @else
             <x-ui-state
                 type="empty"
-                title="Belum ada pengajuan surat yang sesuai filter"
-                message="Belum ada permohonan surat dari warga Desa Pabelan pada kriteria pencarian ini."
-                actionLabel="Tampilkan Semua Permohonan"
+                title="Belum ada pengajuan surat pada tab ini"
+                message="Tidak ada permohonan surat dari warga Desa Pabelan yang sesuai kriteria filter saat ini."
+                actionLabel="Tampilkan Antrean Aktif"
                 :actionHref="route('admin.surat.index')"
             />
         @endif

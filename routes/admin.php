@@ -22,20 +22,24 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     })->name('dashboard');
 
     // 1. Modul Kependudukan (Anggota 1)
-        // 1. Modul Kependudukan (Anggota 1)
-        // 1. Modul Kependudukan (Anggota 1)
     Route::prefix('kependudukan')
         ->name('kependudukan.')
-        ->middleware(PeranDiizinkan::class.':admin,kades,sekdes,staf')
+        ->middleware(PeranDiizinkan::class.':admin,kades')
         ->group(function () {
             Route::resource('kartu-keluarga', KartuKeluargaController::class)
-                ->except(['show'])
+                ->only(['index'])
                 ->names('kk');
 
-            Route::resource('warga', WargaController::class)->except(['show']);
+            Route::resource('warga', WargaController::class)->only(['index']);
 
-            // Akun pengguna: khusus Administrator
+            // Perubahan KK, data warga, dan akun pengguna: khusus Administrator
             Route::middleware(PeranDiizinkan::class.':admin')->group(function () {
+                Route::resource('kartu-keluarga', KartuKeluargaController::class)
+                    ->except(['index', 'show'])
+                    ->names('kk');
+
+                Route::resource('warga', WargaController::class)->except(['index', 'show']);
+
                 Route::resource('pengguna', UserController::class)
                     ->parameters(['pengguna' => 'user'])
                     ->except(['show'])
@@ -47,15 +51,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::prefix('surat')->name('surat.')->middleware(['can:akses-surat-admin'])->group(function () {
         Route::get('/', [SuratPengantarController::class, 'index'])->name('index');
 
-        // CRUD Master Jenis Surat
-        Route::get('/master-jenis', [JenisSuratController::class, 'index'])->name('jenis');
-        Route::post('/master-jenis', [JenisSuratController::class, 'store'])->name('jenis.store');
-        Route::put('/master-jenis/{id}', [JenisSuratController::class, 'update'])->name('jenis.update');
-        Route::delete('/master-jenis/{id}', [JenisSuratController::class, 'destroy'])->name('jenis.destroy');
+        // Penambahan Jenis Surat
+        Route::redirect('/master-jenis', '/admin/surat/penambahan-jenis-surat');
+        Route::get('/penambahan-jenis-surat', [JenisSuratController::class, 'index'])->name('jenis');
+        Route::post('/penambahan-jenis-surat', [JenisSuratController::class, 'store'])->name('jenis.store');
+        Route::put('/penambahan-jenis-surat/{id}', [JenisSuratController::class, 'update'])->name('jenis.update');
+        Route::delete('/penambahan-jenis-surat/{id}', [JenisSuratController::class, 'destroy'])->name('jenis.destroy');
 
         // Verifikasi, Keputusan (ACC / Tolak), dan Cetak PDF A4
         Route::get('/{id}/proses', [SuratPengantarController::class, 'proses'])->name('proses');
         Route::post('/{id}/keputusan', [SuratPengantarController::class, 'keputusan'])->name('keputusan');
+        Route::post('/{id}/verifikasi', [SuratPengantarController::class, 'verifikasi'])->name('verifikasi');
         Route::post('/{id}/setujui', [SuratPengantarController::class, 'setujui'])->name('setujui');
         Route::post('/{id}/tolak', [SuratPengantarController::class, 'tolak'])->name('tolak');
         Route::get('/{id}/cetak', [SuratPengantarController::class, 'cetak'])->name('cetak');

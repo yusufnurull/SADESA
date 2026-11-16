@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Warga\PengaduanWargaController;
 use App\Http\Controllers\Warga\SuratController;
 use App\Http\Controllers\Warga\PengaduanWargaController;
 use Illuminate\Support\Facades\Route;

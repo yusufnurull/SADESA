@@ -47,7 +47,7 @@ Route::prefix('informasi')->name('informasi.')->group(function () {
     })->name('galeri.index');
 });
 
-// Form Pengaduan Warga Publik & Cek Tiket Aduan
+// Form Pengaduan Warga & Cek Tiket Aduan
 Route::prefix('pengaduan')->name('pengaduan.')->group(function () {
     Route::get('/', [PengaduanPublicController::class, 'create'])->name('index');
     Route::post('/kirim', [PengaduanPublicController::class, 'store'])->name('store');

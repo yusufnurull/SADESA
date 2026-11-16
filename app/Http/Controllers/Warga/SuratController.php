@@ -13,10 +13,6 @@ use Illuminate\Support\Facades\Auth;
 
 class SuratController extends Controller
 {
-    /**
-     * Memastikan pengguna yang mengakses adalah Warga resmi yang sudah login
-     * dan memiliki keterkaitan data kependudukan (warga_id).
-     */
     protected function resolveWarga(): Warga
     {
         $user = Auth::user();
@@ -34,9 +30,6 @@ class SuratController extends Controller
         return $warga;
     }
 
-    /**
-     * Daftar riwayat pengajuan surat milik warga yang sedang login beserta filter status.
-     */
     public function index(Request $request)
     {
         $warga = $this->resolveWarga();
@@ -44,7 +37,11 @@ class SuratController extends Controller
 
         $query = SuratPengantar::with(['jenisSurat', 'aparatur', 'ttdAparatur', 'warga'])
             ->where('warga_id', $warga->id)
-            ->when($statusFilter, fn ($q) => $q->where('status', $statusFilter))
+            ->when(
+                $statusFilter === 'disetujui',
+                fn ($q) => $q->whereIn('status', ['disetujui', 'selesai']),
+                fn ($q) => $q->when($statusFilter, fn ($sub) => $sub->where('status', $statusFilter))
+            )
             ->latest('tanggal_pengajuan');
 
         $surats = $query->paginate(10)->withQueryString();
@@ -60,9 +57,6 @@ class SuratController extends Controller
         return view('warga.surat.index', compact('surats', 'warga', 'statusFilter', 'ringkasanStatus'));
     }
 
-    /**
-     * Menampilkan formulir pengajuan surat mandiri dengan biodata readonly & 14 jenis surat dinamis.
-     */
     public function create(Request $request)
     {
         $warga = $this->resolveWarga();
@@ -84,9 +78,6 @@ class SuratController extends Controller
         ));
     }
 
-    /**
-     * Menyimpan permohonan surat warga beserta data tambahan dinamis (JSON) dan berkas lampiran (JSON).
-     */
     public function store(Request $request)
     {
         $warga = $this->resolveWarga();
@@ -103,7 +94,6 @@ class SuratController extends Controller
             'berkas' => ['nullable', 'array'],
         ];
 
-        // Validasi input tambahan dinamis sesuai konfigurasi JSON JenisSurat
         $formInputs = is_array($jenisSurat->form_input_tambahan) ? $jenisSurat->form_input_tambahan : [];
         foreach ($formInputs as $field) {
             $fieldName = $field['name'] ?? null;
@@ -118,7 +108,6 @@ class SuratController extends Controller
             ];
         }
 
-        // Validasi berkas persyaratan dasar umum + persyaratan khusus
         $semuaSyaratBerkas = array_merge(
             JenisSurat::SYARAT_DASAR_UMUM,
             is_array($jenisSurat->syarat_tambahan) ? $jenisSurat->syarat_tambahan : []
@@ -134,13 +123,21 @@ class SuratController extends Controller
                 $isRequired ? 'required' : 'nullable',
                 'file',
                 'mimes:jpg,jpeg,png,pdf',
-                'max:4096',
+                'max:10240',
             ];
         }
 
-        $validated = $request->validate($rules);
+        $messages = [
+            'berkas.*.max' => 'Ukuran berkas lampiran tidak boleh melebihi 10 MB per file.',
+            'berkas.*.mimes' => 'Format berkas lampiran harus berupa JPG, JPEG, PNG, atau PDF.',
+            'berkas.*.file' => 'Berkas yang diunggah tidak valid atau rusak.',
+            'berkas.*.required' => 'Dokumen persyaratan wajib dilampirkan.',
+            'keperluan.required' => 'Keperluan permohonan surat wajib diisi.',
+            'keperluan.min' => 'Keperluan permohonan surat minimal 10 karakter.',
+        ];
 
-        // Simpan seluruh berkas yang diunggah ke storage/app/public/lampiran-surat
+        $validated = $request->validate($rules, $messages);
+
         $berkasTersimpan = [];
         $fileUtamaPertama = null;
 
@@ -165,7 +162,6 @@ class SuratController extends Controller
             }
         }
 
-        // Bersihkan nilai kosong pada data_tambahan
         $dataTambahan = collect($validated['data_tambahan'] ?? [])
             ->map(fn ($val) => is_string($val) ? trim($val) : $val)
             ->filter(fn ($val) => $val !== null && $val !== '')
@@ -189,9 +185,6 @@ class SuratController extends Controller
             ->with('success', 'Permohonan ' . $jenisSurat->nama_surat . ' berhasil dikirim dan sedang menunggu verifikasi perangkat desa.');
     }
 
-    /**
-     * Menampilkan rincian pengajuan surat, berkas terunggah, alasan penolakan, atau tombol unduh PDF.
-     */
     public function show($id)
     {
         $warga = $this->resolveWarga();
@@ -203,9 +196,6 @@ class SuratController extends Controller
         return view('warga.surat.show', compact('surat', 'warga'));
     }
 
-    /**
-     * Mencetak / mengunduh surat resmi ukuran A4 (Kop Surat + QR Code) bagi warga yang suratnya telah disetujui.
-     */
     public function cetak(Request $request, $id)
     {
         $warga = $this->resolveWarga();
